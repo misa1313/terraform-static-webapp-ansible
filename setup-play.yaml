@@ -1,0 +1,44 @@
+---
+- name: Configure Apache Web Server
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Create an xfs filesystem on /dev/xvdb
+      community.general.filesystem:
+        fstype: xfs
+        dev: /dev/xvdb
+
+    - name: Mount device /dev/xvdb on /var/www/html
+      mount:
+        path: /var/www/html
+        src: /dev/xvdb
+        fstype: xfs
+        opts: defaults,noatime
+        state: mounted
+
+    - name: Install Apache
+      yum:
+        name: 
+          - httpd
+          - telnet
+          - collectd
+        state: present
+
+    - name: Start collectd
+      service:
+        name: collectd
+        state: started
+        enabled: yes
+
+    - name: Start Apache service
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: Create index.html file
+      copy:
+        src: /home/ec2-user/index.html
+        dest: /var/www/html/index.html
+        remote_src: yes
+
